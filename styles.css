@@ -1,0 +1,145 @@
+/* CSS Variables for Theme */
+:root {
+    --bg: #0a0a14;
+    --text: #e8e8f0;
+    --accent: #4f8fff;
+}
+
+/* Reset Default Browser Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Main Container */
+.container {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+}
+
+/* Warning Box - shown when opening from insecure context */
+.warning-box {
+    display: none;
+    background: #3a1a1a;
+    border: 2px solid #ff5252;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: left;
+}
+
+.warning-box.show {
+    display: block;
+}
+
+/* Language Selection Card */
+.language-card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Language Dropdown */
+select {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #1a1a2e;
+    color: #fff;
+}
+
+/* Microphone Button - Large Circular Button */
+.mic-btn {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    border: none;
+    border-radius: 50%;
+    background: #2a2a3a;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+/* Active Recording State */
+.mic-btn.recording {
+    background: #e63946;
+    box-shadow: 0 0 25px #e63946;
+}
+
+/* Text Display Boxes */
+.text-box {
+    padding: 14px;
+    border-radius: 12px;
+    min-height: 60px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Placeholder Text Styling */
+.placeholder {
+    color: #777;
+    font-style: italic;
+}
+
+/* Action Buttons Container */
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* General Button Styling */
+button {
+    padding: 8px 20px;
+    border: 1px solid #555;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    display: none;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner.active {
+    display: block;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
