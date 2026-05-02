@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 المترجم الصوتي الذكي</title>
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --text: #e8e8f0;
+            --accent: #4f8fff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+        }
+        .warning-box {
+            background: #3a1a1a;
+            border: 2px solid #ff5252;
+            padding: 16px;
+            border-radius: 12px;
+            display: none;
+        }
+        .warning-box.show { display: block; }
+        .language-card {
+            background: rgba(255,255,255,0.05);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        select {
+            flex:1;
+            padding: 10px;
+            background: #1a1a2e;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #2a2a3a;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 0 auto;
+        }
+        .mic-btn.recording {
+            background: #e63946;
+            box-shadow: 0 0 25px #e63946;
+        }
+        .text-box {
+            background: rgba(255,255,255,0.03);
+            padding: 14px;
+            border-radius: 12px;
+            text-align: start;
+            min-height: 60px;
+        }
+        .placeholder { color: #777; font-style: italic; }
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            cursor: pointer;
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+        .spinner.active { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🌐 المترجم الصوتي الذكي</h2>
+
+        <!-- تنبيه يظهر فقط عند فتح الملف محلياً أو في متصفح الواتساب -->
+        <div class="warning-box" id="warningBox">
+            ⚠️ <strong>تنبيه:</strong> الموقع مفتوح بطريقة غير آمنة (ملف محلي أو متصفح الواتساب).<br>
+            الميكروفون لن يعمل هنا. <br>
+            🔗 <strong>الحل:</strong> افتح هذا الرابط في متصفح Chrome أو Safari:<br>
+            <span style="color:#4f8fff; word-break: break-all;" id="secureUrl"></span>
+        </div>
+
+        <div class="language-card">
+            <span>🗣️ اللغة:</span>
+            <select id="sourceLanguage">
+                <option value="ar-SA" selected>🇸🇦 العربية</option>
+                <option value="en-US">🇺🇸 English</option>
+                <option value="fr-FR">🇫🇷 Français</option>
+                <option value="es-ES">🇪🇸 Español</option>
+                <option value="de-DE">🇩🇪 Deutsch</option>
+                <option value="zh-CN">🇨🇳 中文</option>
+            </select>
+        </div>
+
+        <button class="mic-btn" id="micButton">🎤</button>
+        <p id="statusText" style="min-height:24px;">اضغط للتحدث</p>
+        <div class="spinner" id="spinner"></div>
+
+        <div class="text-box">
+            <div style="font-size:0.8rem; color:#aaa;">📝 ما قُلته</div>
+            <p id="transcriptText" class="placeholder">سيظهر هنا...</p>
+        </div>
+        <div class="text-box">
+            <div style="font-size:0.8rem; color:#aaa;">🌍 الترجمة للإنجليزية</div>
+            <p id="translationText" class="placeholder">English translation...</p>
+        </div>
+
+        <div class="actions">
+            <button id="copyBtn">📋 نسخ</button>
+            <button id="speakBtn">🔊 استمع</button>
+            <button id="clearBtn">🗑️ مسح</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- كشف البيئة غير الآمنة ----------
+            const isSecure = window.isSecureContext;
+            const isFileProtocol = window.location.protocol === 'file:';
+            const isWhatsApp = /WhatsApp/i.test(navigator.userAgent);
+            const warningBox = document.getElementById('warningBox');
+            const secureUrlSpan = document.getElementById('secureUrl');
+            
+            if (!isSecure || isFileProtocol || isWhatsApp) {
+                warningBox.classList.add('show');
+                // ضع هنا الرابط الآمن بعد رفع الموقع (عدله لاحقاً)
+                const finalUrl = 'https://YOUR_USERNAME.github.io/translator/translator.html';
+                secureUrlSpan.textContent = finalUrl;
+            }
+
+            // ---------- العناصر ----------
+            const micButton = document.getElementById('micButton');
+            const statusText = document.getElementById('statusText');
+            const transcriptText = document.getElementById('transcriptText');
+            const translationText = document.getElementById('translationText');
+            const sourceLanguage = document.getElementById('sourceLanguage');
+            const spinner = document.getElementById('spinner');
+
+            let recognition = null;
+            let isRecording = false;
+            let finalTranscript = '';
+            let lastTranslation = '';
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusText.textContent = '❌ المتصفح لا يدعم التعرف الصوتي';
+                micButton.disabled = true;
+                return;
+            }
+
+            async function requestPermission() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(t => t.stop());
+                    return true;
+                } catch (e) {
+                    statusText.textContent = '⛔ تم رفض الميكروفون. اسمح بالوصول من إعدادات المتصفح.';
+                    return false;
+                }
+            }
+
+            function startRecognition() {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = sourceLanguage.value;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isRecording = true;
+                    micButton.classList.add('recording');
+                    micButton.textContent = '⏺️';
+                    statusText.textContent = '🔴 استمع... تحدث الآن';
+                    finalTranscript = '';
+                    transcriptText.textContent = '';
+                    transcriptText.classList.remove('placeholder');
+                };
+
+                recognition.onresult = (event) => {
+                    let interim = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interim += event.results[i][0].transcript;
+                        }
+                    }
+                    transcriptText.textContent = (finalTranscript + interim).trim() || '...';
+                    transcriptText.classList.remove('placeholder');
+
+                    if (finalTranscript.trim()) {
+                        translate(finalTranscript.trim());
+                    }
+                };
+
+                recognition.onerror = (e) => {
+                    if (e.error === 'no-speech') {
+                        statusText.textContent = '🎤 لم أسمع شيئاً، حاول مجدداً';
+                    } else if (e.error === 'not-allowed') {
+                        statusText.textContent = '⛔ صلاحية الميكروفون مرفوضة';
+                        stopAll();
+                    } else {
+                        statusText.textContent = '⚠️ خطأ: ' + e.error;
+                    }
+                };
+
+                recognition.onend = () => {
+                    if (isRecording) {
+                        try { recognition.start(); } catch (e) { stopAll(); }
+                    } else {
+                        stopUI();
+                    }
+                };
+
+                recognition.start();
+            }
+
+            function stopUI() {
+                isRecording = false;
+                micButton.classList.remove('recording');
+                micButton.textContent = '🎤';
+                if (finalTranscript) statusText.textContent = '✅ تم';
+                else statusText.textContent = 'اضغط للتحدث';
+            }
+
+            function stopAll() {
+                isRecording = false;
+                if (recognition) {
+                    try { recognition.stop(); } catch (e) {}
+                }
+                stopUI();
+            }
+
+            async function translate(text) {
+                if (text.length < 3) return;
+                spinner.classList.add('active');
+                translationText.textContent = 'جاري الترجمة...';
+                const lang = sourceLanguage.value.split('-')[0];
+                try {
+                    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${lang}&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+                    const data = await res.json();
+                    if (data && data[0]) {
+                        let out = '';
+                        data[0].forEach(seg => { if (seg[0]) out += seg[0]; });
+                        translationText.textContent = out.trim();
+                        lastTranslation = out.trim();
+                        translationText.classList.remove('placeholder');
+                    } else {
+                        throw new Error('فشل');
+                    }
+                } catch (e) {
+                    translationText.textContent = '⚠️ تعذرت الترجمة';
+                } finally {
+                    spinner.classList.remove('active');
+                }
+            }
+
+            micButton.addEventListener('click', async () => {
+                if (isRecording) {
+                    stopAll();
+                } else {
+                    // إذا كان الموقع غير آمن أساساً فلن نحاول
+                    if (!isSecure && !isFileProtocol) {
+                        statusText.textContent = '⚠️ افتح الرابط الآمن ليشتغل الميكروفون';
+                        return;
+                    }
+                    const ok = await requestPermission();
+                    if (!ok) return;
+                    if (recognition) {
+                        try { recognition.stop(); } catch (e) {}
+                    }
+                    startRecognition();
+                }
+            });
+
+            sourceLanguage.addEventListener('change', () => {
+                if (isRecording) {
+                    stopAll();
+                    statusText.textContent = '🔄 تم تغيير اللغة. اضغط للتحدث.';
+                }
+            });
+
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const txt = lastTranslation || translationText.textContent;
+                if (!txt || txt.includes('تعذرت') || txt.includes('English')) return;
+                navigator.clipboard.writeText(txt).then(() => {
+                    statusText.textContent = '📋 تم النسخ';
+                    setTimeout(() => statusText.textContent = 'اضغط للتحدث', 2000);
+                });
+            });
+
+            document.getElementById('speakBtn').addEventListener('click', () => {
+                if (!lastTranslation) return;
+                const u = new SpeechSynthesisUtterance(lastTranslation);
+                u.lang = 'en-US';
+                window.speechSynthesis.speak(u);
+            });
+
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                finalTranscript = '';
+                lastTranslation = '';
+                transcriptText.textContent = 'سيظهر هنا...';
+                transcriptText.classList.add('placeholder');
+                translationText.textContent = 'English translation...';
+                translationText.classList.add('placeholder');
+                statusText.textContent = 'اضغط للتحدث';
+                stopAll();
+            });
+        })();
+    </script>
+</body>
+</html>
